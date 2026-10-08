@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: wallet-ledger
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/ledger}
+    username: ${DATABASE_USERNAME:ledger}
+    password: ${DATABASE_PASSWORD:ledger}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+
+ledger:
+  security:
+    jwt-secret: ${LEDGER_JWT_SECRET:}
+    token-ttl: ${LEDGER_TOKEN_TTL:1h}
+    admin-email: ${LEDGER_ADMIN_EMAIL:}
+    admin-password: ${LEDGER_ADMIN_PASSWORD:}
+  outbox:
+    poll-interval-ms: 1000
+    batch-size: 50
+    max-backoff: 5m
+  events:
+    # log | kafka | relay
+    publisher: ${LEDGER_EVENTS_PUBLISHER:log}
+    kafka:
+      topic: ledger.transfers
+    relay:
+      url: ${RELAY_URL:http://localhost:8000}
+      api-key: ${RELAY_API_KEY:}
+      timeout: 5s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
