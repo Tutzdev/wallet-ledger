@@ -2,6 +2,7 @@
 
 Double-entry wallet ledger API: accounts, deposits, withdrawals, transfers and reversals that stay correct under concurrent requests and client retries.
 
+[![CI](https://github.com/Tutzdev/wallet-ledger/actions/workflows/ci.yml/badge.svg)](https://github.com/Tutzdev/wallet-ledger/actions/workflows/ci.yml)
 ![Java 21](https://img.shields.io/badge/Java-21-0f4c3a?style=flat-square&logo=openjdk&logoColor=white)
 ![Spring Boot 4](https://img.shields.io/badge/Spring_Boot-4-0f4c3a?style=flat-square&logo=springboot&logoColor=white)
 ![Spring Security](https://img.shields.io/badge/Spring_Security-JWT-0f4c3a?style=flat-square&logo=springsecurity&logoColor=white)
