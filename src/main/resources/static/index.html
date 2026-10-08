@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ledger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<section id="login" class="login" hidden>
+  <form id="login-form" class="login-card">
+    <p class="brand brand-dark">Ledger</p>
+    <h1>Sign in</h1>
+    <p class="muted">Back-office access to the wallet ledger.</p>
+    <label>E-mail <input name="email" type="email" autocomplete="username" required></label>
+    <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+    <button class="btn btn-primary" type="submit">Sign in</button>
+    <p id="login-error" class="form-error" role="alert"></p>
+  </form>
+</section>
+
+<div id="app" class="shell" hidden>
+  <aside class="sidebar">
+    <p class="brand">Ledger</p>
+    <nav>
+      <button class="nav-item active" data-view="overview">Overview</button>
+      <button class="nav-item" data-view="accounts">Accounts</button>
+      <button class="nav-item" data-view="transfers">Transfers</button>
+    </nav>
+    <button id="logout" class="nav-item nav-bottom">Sign out</button>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <h1 id="view-title">Overview</h1>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" data-open="account-modal">New account</button>
+        <button class="btn btn-primary" data-open="money-modal">Move money</button>
+      </div>
+    </header>
+
+    <section id="view-overview" class="view">
+      <div id="kpis" class="kpis"></div>
+      <div class="card">
+        <div class="card-head"><h2>Latest transfers</h2></div>
+        <div class="table-wrap"><table id="latest-transfers"></table></div>
+      </div>
+    </section>
+
+    <section id="view-accounts" class="view" hidden>
+      <div class="card">
+        <div class="card-head"><h2>Customer accounts</h2></div>
+        <div class="table-wrap"><table id="accounts-table"></table></div>
+      </div>
+    </section>
+
+    <section id="view-transfers" class="view" hidden>
+      <div class="card">
+        <div class="card-head">
+          <h2>All transfers</h2>
+          <div class="pager">
+            <button class="btn btn-ghost btn-sm" id="prev-page">Previous</button>
+            <span id="page-label" class="muted"></span>
+            <button class="btn btn-ghost btn-sm" id="next-page">Next</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table id="transfers-table"></table></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<dialog id="account-modal" class="modal">
+  <form id="account-form" method="dialog">
+    <h2>New account</h2>
+    <label>Owner name <input name="ownerName" maxlength="120" required></label>
+    <label>Currency
+      <select name="currency"><option>BRL</option><option>USD</option><option>EUR</option></select>
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" value="cancel" formnovalidate>Cancel</button>
+      <button class="btn btn-primary" value="submit">Create</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="money-modal" class="modal">
+  <form id="money-form" method="dialog">
+    <h2>Move money</h2>
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab active" data-kind="deposit">Deposit</button>
+      <button type="button" class="tab" data-kind="withdrawal">Withdraw</button>
+      <button type="button" class="tab" data-kind="transfer">Transfer</button>
+    </div>
+    <label data-field="source">From <select name="source"></select></label>
+    <label data-field="destination">To <select name="destination"></select></label>
+    <label>Amount <input name="amount" type="number" min="0.01" step="0.01" required></label>
+    <label>Description <input name="description" maxlength="140"></label>
+    <p class="key-hint">Idempotency-Key <code id="idempotency-key"></code></p>
+    <p id="money-error" class="form-error" role="alert"></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" value="cancel" formnovalidate>Cancel</button>
+      <button class="btn btn-primary" value="submit">Confirm</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="reversal-modal" class="modal">
+  <form id="reversal-form" method="dialog">
+    <h2>Reverse transfer</h2>
+    <p class="muted">A reversal posts the opposite movement. The original transfer is never edited.</p>
+    <label>Reason <input name="reason" maxlength="140" required></label>
+    <p id="reversal-error" class="form-error" role="alert"></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" value="cancel" formnovalidate>Cancel</button>
+      <button class="btn btn-danger" value="submit">Reverse</button>
+    </div>
+  </form>
+</dialog>
+
+<aside id="statement" class="drawer" hidden>
+  <div class="drawer-head">
+    <div>
+      <p class="muted" id="statement-currency"></p>
+      <h2 id="statement-owner"></h2>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="close-statement">Close</button>
+  </div>
+  <p class="drawer-balance" id="statement-balance"></p>
+  <ul id="statement-lines" class="statement-lines"></ul>
+</aside>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
