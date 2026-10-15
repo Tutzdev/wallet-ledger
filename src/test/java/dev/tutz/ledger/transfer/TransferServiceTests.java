@@ -7,6 +7,8 @@ import dev.tutz.ledger.PostgresTestSupport;
 import dev.tutz.ledger.account.AccountRepository;
 import dev.tutz.ledger.account.AccountStatus;
 import dev.tutz.ledger.common.BusinessRuleException;
+import dev.tutz.ledger.outbox.OutboxEvent;
+import dev.tutz.ledger.outbox.OutboxRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 class TransferServiceTests extends PostgresTestSupport {
 
@@ -31,6 +35,12 @@ class TransferServiceTests extends PostgresTestSupport {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private OutboxRepository outbox;
+
+    @Autowired
+    private ObjectMapper json;
 
     @Test
     void retryWithTheSameKeyReturnsTheOriginalTransfer() {
@@ -119,5 +129,24 @@ class TransferServiceTests extends PostgresTestSupport {
                 .isInstanceOf(BusinessRuleException.class)
                 .extracting("code").isEqualTo("ACCOUNT_FROZEN");
         assertThat(accountRepository.balanceOf(alice)).isEqualTo(3_500);
+    }
+
+    @Test
+    void thePostedEventCarriesTheRequestIdempotencyKey() {
+        UUID operator = newOperator();
+        UUID alice = openAccount("Alice");
+        UUID bob = openAccount("Bob");
+        transfers.submit(TransferCommand.deposit(alice, new BigDecimal("50.00"), null, newKey(), operator));
+
+        UUID transferId = transfers.submit(TransferCommand.transfer(alice, bob, new BigDecimal("20.00"), "Booking 42",
+                "booking-42", operator)).transfer().id();
+
+        OutboxEvent event = outbox.findAll().stream()
+                .filter(candidate -> candidate.getAggregateId().equals(transferId))
+                .findFirst().orElseThrow();
+        JsonNode payload = json.readTree(event.getPayload());
+        assertThat(event.getEventType()).isEqualTo("transfer.posted");
+        assertThat(payload.get("transferId").asString()).isEqualTo(transferId.toString());
+        assertThat(payload.get("idempotencyKey").asString()).isEqualTo("booking-42");
     }
 }

@@ -116,6 +116,10 @@ public class Transfer extends AssignedIdEntity {
         return reversalOfId;
     }
 
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
